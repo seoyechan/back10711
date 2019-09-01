@@ -1,13 +1,12 @@
 #include <iostream>
 #include <vector>
+#include <queue>
 
 using namespace std;
 
-#define _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable:4996)
-
 int nfiled[1001][1001];
-char cfiled[1001][1001];
+int nfiled_copy[1001][1001];
+
 int x, y;
 
 int dirx[] = { 0, 0, 1, -1, -1, 1, 1, -1 };
@@ -18,7 +17,7 @@ typedef struct pos{
 };
 
 vector <pos> vec;
-
+queue <pos> que[2];
 
 int changeInt(char a)
 {
@@ -52,56 +51,64 @@ int main()
 		}
 	}
 
-	bool flag = true;
-	int chk = 1;
-	int time = 0;
-	int temp_time = 0;
+	int que_num = 0;
+	pos cur = { 0, 0 };
 	int nextx = 0;
 	int nexty = 0;
+	int time = 0;
 
-	while (flag)
-	{
-		chk = 1;
-		vec.clear();
-		for (int i = 0; i < y; i++){
-			for (int j = 0; j < x; j++){
+	for (int i = 0; i < y; i++){
+		for (int j = 0; j < x; j++){
+			if (nfiled[i][j]){
+				for (int k = 0; k < 8; k++){
 
-				if (nfiled[i][j])
-				{
-					temp_time = 0;
-					for (int k = 0; k < 8; k++){
-						nextx = j + dirx[k];
-						nexty = i + diry[k];
+					nextx = j + dirx[k];
+					nexty = i + diry[k];
 
-						if (nextx < 0 || nextx >= x || nexty < 0 || nexty >= y) continue;
+					if (nextx < 0 || nextx >= x || nexty < 0 || nexty >= y) continue;
 
-						if (!nfiled[nexty][nextx])
-							temp_time++;
-						
-					}
-					if (temp_time >= nfiled[i][j]){
-						vec.push_back({ j, i });
-						chk = 0;
-					}
+					if (!nfiled[nexty][nextx])
+						nfiled_copy[i][j]++;
+				}
 
-
+				if (nfiled_copy[i][j] >= nfiled[i][j]){
+					que[que_num].push({ j, i });
+					vec.push_back({ j, i });
 				}
 			}
 		}
-		time++;
-		if (chk){
-			flag = false;
-		}
+	}
+	for (int i = 0; i < vec.size(); i++){
+		nfiled[vec[i].ny][vec[i].nx] = 0;
+	}
+	
+	while (!que[que_num].empty())
+	{
+		while (!que[que_num].empty())
+		{
+			cur = que[que_num].front();
+			que[que_num].pop();
 
-		for (int i = 0; i < vec.size(); i++){
-			nfiled[vec[i].ny][vec[i].nx] = 0;
+			for (int i = 0; i < 8; i++){
+				nextx = cur.nx + dirx[i];
+				nexty = cur.ny + diry[i];
+
+				if (nextx < 0 || nextx >= x || nexty < 0 || nexty >= y || !nfiled[nexty][nextx]) continue;
+
+				nfiled_copy[nexty][nextx]++;
+
+				if (nfiled_copy[nexty][nextx] >= nfiled[nexty][nextx]){
+					que[!que_num].push({ nextx, nexty });
+					nfiled[nexty][nextx] = 0;
+				}
+			}
 		}
+		que_num = !que_num;
+		time++;
 	}
 
+
+
 	cout << time << endl;
-
-
-
-
 	return 0;
 }
